@@ -149,7 +149,7 @@ export default function Home() {
 
   useEffect(() => {
     handleSearch()
-  }, [handleSearch])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && tag.length > 0) {
@@ -176,14 +176,14 @@ export default function Home() {
     }
   }
 
-  const addTag = (tag: ITag, clear = false) => {
+  const addTag = (tag: ITag, clear = false, forceAdd = false) => {
     if (clear) setTag('')
     if (tags.some(t => t.label === tag.label)) {
       console.log('Tag already exists:', tag)
       return
     }
     console.log('Adding tag:', tag)
-    setTags(tags => [...tags, { ...tag, modifier }])
+    setTags(tags => [...tags, { ...tag, modifier: forceAdd ? '+' : modifier }])
   }
 
   const removeTag = (tag: ITag) => {
@@ -196,7 +196,7 @@ export default function Home() {
     if (existingTag) {
       removeTag(existingTag)
     } else {
-      addTag(tag)
+      addTag(tag, false, true)
     }
   }
 
