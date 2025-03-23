@@ -99,7 +99,7 @@ export default function Video({ src, width, height, poster, loop }: { src: strin
         <>
           <video
             ref={videoRef}
-            src={src}
+            src={`/api/proxy?query=${encodeURIComponent(src)}`}
             poster={poster}
             loop={loop}
             className="rounded-t-xl w-full col-span-3 row-span-3 object-contain"
@@ -118,7 +118,6 @@ export default function Video({ src, width, height, poster, loop }: { src: strin
             onLoadedMetadata={event => {
               const video = event.currentTarget
               setDuration(video.duration)
-              console.log(video.duration)
             }}
             onTimeUpdate={event => {
               setCurrentTime(event.currentTarget.currentTime)

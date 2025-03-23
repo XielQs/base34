@@ -1,9 +1,9 @@
 'use client'
 import { VscDebugDisconnect, VscError, VscPerson } from 'react-icons/vsc'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { BiHeart, BiLink, BiLinkExternal } from 'react-icons/bi'
 import { LuFolders, LuInfo, LuPencil } from 'react-icons/lu'
 import { IoPricetagOutline } from 'react-icons/io5'
-import { useEffect, useRef, useState } from 'react'
 import { formatCreatedAt } from '@/utils/helpers'
 import { FiMinus } from 'react-icons/fi'
 import { GoPlus } from 'react-icons/go'
@@ -24,12 +24,15 @@ export default function Home() {
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [sendTimeout, setSendTimeout] = useState<number | null>(null)
   const [selectedSuggestion, setSelectedSuggestion] = useState<number>(0)
-  const [posts, setPosts] = useState<IPost[] | false | null>([])
+  const [posts, setPosts] = useState<IPost[] | false | null>(null)
   const [totalPosts, setTotalPosts] = useState<number>(0)
   const [error, setError] = useState<Error | null>(null)
+  const [te, setTE] = useState(0)
+  const [isLoadingMore, setLoadingMore] = useState(false)
 
   const tagSelectorRef = useRef<HTMLOListElement>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
+  const loadMoreBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (tag.trim().length === 0) return
@@ -88,12 +91,50 @@ export default function Home() {
     }
   }, [])
 
+  const loadMore = useCallback(async () => {
+    if (posts === null || posts === false || isLoadingMore) return
+    try {
+      setTE(te => te + 1)
+      setLoadingMore(true)
+      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label), te: te + 1 })
+      const postsIDs = posts.map(post => post.id)
+      const newPosts = data.data.filter(post => !postsIDs.includes(post.id))
+      setPosts(posts => [...(posts as IPost[]), ...newPosts])
+      setTotalPosts(data.total)
+    } catch (e) {
+      console.error('Error fetching posts:', e)
+      setPosts(false)
+      setTotalPosts(0)
+      setError(e as Error)
+    }
+    setLoadingMore(false)
+    }, [posts, tags, te, isLoadingMore])
+
+  useEffect(() => {
+    const loadMoreBtn = loadMoreBtnRef.current
+    if (!loadMoreBtn) return
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        loadMore()
+      }
+    }, { threshold: 1 })
+    observer.observe(loadMoreBtn)
+    return () => {
+      if (loadMoreBtn) {
+        observer.unobserve(loadMoreBtn)
+      }
+    }
+  }, [loadMoreBtnRef, loadMore])
+
   const handleFocus = () => {
     setFocusInside(true)
   }
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     setPosts(null)
+    setTotalPosts(0)
+    setError(null)
+    setTE(0)
     try {
       const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label) })
       setPosts(data.data)
@@ -104,7 +145,11 @@ export default function Home() {
       setTotalPosts(0)
       setError(e as Error)
     }
-  }
+  }, [tags])
+
+  useEffect(() => {
+    handleSearch()
+  }, [handleSearch])
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && tag.length > 0) {
@@ -230,7 +275,7 @@ export default function Home() {
         <span></span>
       </div>
       {posts === null ? (
-        <div className="h-screen rounded-xl animate-[pulse_3s_ease-in-out_infinite] bg-primary-tone"></div>
+        <div className="h-screen w-full rounded-xl animate-[pulse_3s_ease-in-out_infinite] bg-primary-tone"></div>
       ) : posts === false ? (
         <div className="flex items-center m-auto my-12 gap-6 rounded bg-primary-light p-4 w-full max-w-[400px]">
           <div className="grid place-items-center min-w-16 min-h-16 rounded border-2 border-primary-tone shrink">
@@ -272,8 +317,11 @@ export default function Home() {
             </ol>
           )}
           <div></div>
-          <button type="button" className="w-40 h-9 font-light font-[Arial] text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer flex items-center justify-center disabled:bg-secondary/75 disabled:cursor-auto">
+          <button type="button" ref={loadMoreBtnRef} onClick={loadMore} className="w-40 h-9 font-light font-[Arial] text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer flex items-center justify-center disabled:bg-secondary/75 disabled:cursor-auto" disabled={posts === null || isLoadingMore}>
             Load more
+            {isLoadingMore && (
+              <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin ml-2"></div>
+            )}
           </button>
         </section>
       )}
@@ -362,7 +410,7 @@ function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: I
       {post.type === 'video' ? (
         <Video src={post.file_url} width={post.width} height={post.height} poster={post.preview_url} loop={false} />
       ) : (
-        <Image src={post.file_url} previewURL={post.preview_url} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-full" unoptimized={post.type === 'gif'} />
+        <Image src={post.file_url} previewURL={post.preview_url} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={post.type === 'gif'} />
       )}
       <div className="rounded-b-xl text-sm bg-primary-light p-2 flex flex-col gap-2">
         <div className="flex items-center gap-2">

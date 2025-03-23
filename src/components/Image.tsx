@@ -1,13 +1,12 @@
-import { useState, SyntheticEvent } from 'react'
 import type { ImageProps } from 'next/image'
 import NextImage from 'next/image'
+import { useState } from 'react'
 
 export default function Image(props: ImageProps & { previewURL?: string }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const onLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+  const onLoad = () => {
     setIsLoaded(true)
-    event.currentTarget.classList.remove('opacity-0')
   }
 
   return !('previewURL' in props) ? <NextImage {...props} /> : (
@@ -21,7 +20,7 @@ export default function Image(props: ImageProps & { previewURL?: string }) {
       <NextImage
         {...props}
         src={props.src}
-        className={props.className + (!isLoaded ? ' opacity-0 absolute' : '')}
+        className={props.className + (!isLoaded ? ' opacity-0 absolute -left-96' : '')}
         onLoad={onLoad}
       />
     </>

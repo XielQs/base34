@@ -4,7 +4,7 @@ import { formatLabel, sortTags } from '@/utils/helpers'
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json()
+    const { query, te } = await request.json()
     if (!Array.isArray(query)) {
       return NextResponse.json({ error: 'Invalid query format' }, { status: 400 })
     }
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
           limit: 20,
           pid: 0,
           tags: parsedTags,
+          te
         }
       }),
       axios.get<string>('https://api.rule34.xxx/index.php', {

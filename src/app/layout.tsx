@@ -28,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en-US">
       <body className={`${roboto.className} ${zenKakuGothicNew.variable} antialiased flex items-center justify-center flex-col`}>
-        <div className="flex items-center justify-between flex-col w-3xl h-full pb-5 pt-3">
+        <div className="flex items-center justify-between flex-col w-full lg:max-w-3xl h-full pb-5 pt-3 px-2">
           <header className="flex items-center gap-2 w-full">
             <div className="grow"></div>
             <Link href="/" className="w-8 h-8 inline-flex items-center justify-center hover:bg-primary-light hover:text-white rounded-full transition-colors duration-500">
