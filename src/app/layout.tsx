@@ -22,6 +22,31 @@ const zenKakuGothicNew = Zen_Kaku_Gothic_New({
 export const metadata: Metadata = {
   title: "Base34",
   description: "Base34 cuz rule34 is basesd",
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+  },
+  openGraph: {
+    title: "Base34",
+    description: "Base34 cuz rule34 is basesd",
+    url: 'https://base34.dev',
+    siteName: 'Base34',
+    images: [
+      {
+        url: '/favicon.png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: "Base34",
+    description: "Base34 cuz rule34 is basesd",
+    images: [
+      {
+        url: '/favicon.png',
+      },
+    ],
+  },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
