@@ -1,5 +1,5 @@
+import { useState, SyntheticEvent } from 'react'
 import type { ImageProps } from 'next/image'
-import { useState, useEffect, SyntheticEvent } from 'react'
 import NextImage from 'next/image'
 
 export default function Image(props: ImageProps & { previewURL?: string }) {
