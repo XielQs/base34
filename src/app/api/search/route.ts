@@ -26,9 +26,8 @@ export async function POST(request: NextRequest) {
           fields: 'tag_info',
           json: 1,
           limit: 20,
-          pid: 0,
           tags: parsedTags,
-          te: pid
+          pid
         }
       }),
       axios.get<string>('https://api.rule34.xxx/index.php', {
