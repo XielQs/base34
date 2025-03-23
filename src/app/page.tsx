@@ -27,7 +27,7 @@ export default function Home() {
   const [posts, setPosts] = useState<IPost[] | false | null>(null)
   const [totalPosts, setTotalPosts] = useState<number>(0)
   const [error, setError] = useState<Error | null>(null)
-  const [te, setTE] = useState(0)
+  const [pid, setPid] = useState(0)
   const [isLoadingMore, setLoadingMore] = useState(false)
 
   const tagSelectorRef = useRef<HTMLOListElement>(null)
@@ -94,9 +94,9 @@ export default function Home() {
   const loadMore = useCallback(async () => {
     if (posts === null || posts === false || isLoadingMore) return
     try {
-      setTE(te => te + 1)
+      setPid(pid => pid + 1)
       setLoadingMore(true)
-      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label), te: te + 1 })
+      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label), pid: pid + 1 })
       const postsIDs = posts.map(post => post.id)
       const newPosts = data.data.filter(post => !postsIDs.includes(post.id))
       setPosts(posts => [...(posts as IPost[]), ...newPosts])
@@ -108,7 +108,7 @@ export default function Home() {
       setError(e as Error)
     }
     setLoadingMore(false)
-    }, [posts, tags, te, isLoadingMore])
+    }, [posts, tags, pid, isLoadingMore])
 
   useEffect(() => {
     const loadMoreBtn = loadMoreBtnRef.current
@@ -134,7 +134,7 @@ export default function Home() {
     setPosts(null)
     setTotalPosts(0)
     setError(null)
-    setTE(0)
+    setPid(0)
     try {
       const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label) })
       setPosts(data.data)
