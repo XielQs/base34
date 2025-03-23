@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #000;
+  --color-primary-light: #151520;
+  --color-primary-tone: #303040;
+  --color-secondary: #dc143c;
+  --color-artist-background: #a223;
+  --color-artist-background-hover: #a228;
+  --color-character-background: #2a23;
+  --color-character-background-hover: #2a28;
+  --color-copyright-background: #b4b3;
+  --color-copyright-background-hover: #b4b8;
+  --color-metadata-background: #f823;
+  --color-metadata-background-hover: #f828;
+  /* References */
+  --color-rule34: #aae5a4;
+  --color-twitter: #1da1f2;
+  --color-reddit: #ff4500;
+  --color-pixiv: #0096db;
+  --color-patreon: #f96854;
+  --color-deviantart: #05cc47;
+  --color-newgrounds: #f3a95c;
+  --color-e621: #014995;
+  --color-gelbooru: #328dfe;
+  --color-pornhub: #ffa31a;
+  --color-hentaihaven: #be1e2c;
+  /* End of References */
+  --font-gothic: var(--font-gothic);
+}
+
+@layer base {
+  * {
+    @apply p-0 m-0 outline-0 box-border;
+  }
+  *:focus {
+    @apply outline-none;
+  }
+}
+
+
+body {
+  @apply bg-primary text-gray-400 font-gothic h-auto accent-secondary;
+}
+
+html {
+  @apply h-full text-base;
+}
+
+@layer base {
+  img {
+    width: auto;
+    height: auto;
+  }
+}
