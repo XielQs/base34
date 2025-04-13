@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios'
 
 const ALLOWED_DOMAINS = [
   'api-cdn-mp4.rule34.xxx',
+  'api-cdn.rule34.xxx'
 ]
 
 export async function GET(request: NextRequest) {
