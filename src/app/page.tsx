@@ -410,7 +410,7 @@ function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: I
       {post.type === 'video' ? (
         <Video src={post.file_url} width={post.width} height={post.height} poster={post.preview_url} loop={false} />
       ) : (
-        <Image src={post.file_url} previewURL={post.preview_url} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={post.type === 'gif'} />
+        <Image src={`/api/proxy?query=${encodeURIComponent(post.file_url)}`} previewURL={`/api/proxy?query=${encodeURIComponent(post.preview_url)}`} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={true} />
       )}
       <div className="rounded-b-xl text-sm bg-primary-light p-2 flex flex-col gap-2">
         <div className="flex items-center gap-2">
