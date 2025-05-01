@@ -7,10 +7,11 @@ import { IoPricetagOutline } from 'react-icons/io5'
 import { formatCreatedAt } from '@/utils/helpers'
 import { FiMinus } from 'react-icons/fi'
 import { GoPlus } from 'react-icons/go'
-import Video from '@/components/Video'
+import fluidPlayer from 'fluid-player'
 import Image from '@/components/Image'
 import Link from 'next/link'
 import axios from 'axios'
+import '../../node_modules/fluid-player/src/css/fluidplayer.css'
 
 const formatter = Intl.NumberFormat('en', { notation: 'compact' })
 
@@ -364,6 +365,8 @@ const REFERENCE_MAPPINGS = {
 
 function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: ITag) => void, tags: ITag[] }) {
   const [tab, setTab] = useState<'reference' | 'tags' | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  let player: FluidPlayerInstance | null = null
 
   const parseTagTypeColor = (tag: TType) => {
     switch (tag) {
@@ -405,10 +408,36 @@ function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: I
     }
   }
 
+  useEffect(() => {
+    if (!videoRef.current || player) return
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    player = fluidPlayer(videoRef.current, {
+      layoutControls: {
+        controlBar: {
+          autoHideTimeout: 3,
+          animated: true,
+          autoHide: true
+        },
+        autoPlay: false,
+        mute: false,
+        allowTheatre: false,
+        playPauseAnimation: false,
+        playbackRateEnabled: true,
+        allowDownload: true,
+        playButtonShowing: true,
+        fillToContainer: false,
+        primaryColor: 'var(--color-secondary)',
+      },
+    })
+  }, [videoRef])
+
   return (
-    <li>
+    <li className="flex flex-col">
       {post.type === 'video' ? (
-        <Video src={post.file_url} width={post.width} height={post.height} poster={post.preview_url} loop={false} />
+        // <Video src={post.file_url} width={post.width} height={post.height} poster={post.preview_url} loop={false} />
+        <video ref={videoRef} width={post.width} height={post.height} poster={`/api/proxy?query=${encodeURIComponent(post.preview_url)}`} loop={post.tag_info.some(tag => tag.tag === 'loop')}>
+          <source src={`/api/proxy?query=${encodeURIComponent(post.file_url)}`} data-fluid-hd type="video/mp4" />
+        </video>
       ) : (
         <Image src={`/api/proxy?query=${encodeURIComponent(post.file_url)}`} previewURL={`/api/proxy?query=${encodeURIComponent(post.preview_url)}`} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={true} />
       )}

@@ -2,19 +2,17 @@ import type { ImageProps } from 'next/image'
 import NextImage from 'next/image'
 import { useState } from 'react'
 
-export default function Image(props: ImageProps & { previewURL?: string }) {
-  const [isLoaded, setIsLoaded] = useState(false);
+export default function Image({ previewURL, ...props }: ImageProps & { previewURL?: string }) {
+  const [isLoaded, setIsLoaded] = useState(false)
 
-  const onLoad = () => {
-    setIsLoaded(true)
-  }
+  const onLoad = () => setIsLoaded(true)
 
-  return !('previewURL' in props) ? <NextImage {...props} /> : (
+  return !previewURL ? <NextImage {...props} /> : (
     <>
       {!isLoaded && (
         <NextImage
           {...props}
-          src={props.previewURL!}
+          src={previewURL}
         />
       )}
       <NextImage
@@ -25,4 +23,4 @@ export default function Image(props: ImageProps & { previewURL?: string }) {
       />
     </>
   )
-};
+}

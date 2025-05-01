@@ -26,10 +26,11 @@ export const metadata: Metadata = {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
   },
+  metadataBase: new URL('https://base34.vercel.app'),
   openGraph: {
     title: "Base34",
     description: "Base34 cuz rule34 is basesd",
-    url: 'https://base34.dev',
+    url: 'https://base34.vercel.app',
     siteName: 'Base34',
     images: [
       {
