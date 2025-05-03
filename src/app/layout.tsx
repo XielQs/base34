@@ -1,4 +1,4 @@
-import { VscSearch, VscSettingsGear } from 'react-icons/vsc'
+import { VscGithub, VscSearch, VscSettingsGear } from 'react-icons/vsc'
 import { Zen_Kaku_Gothic_New } from 'next/font/google'
 import BackToTop from '@/components/BackToTop'
 import { Roboto } from 'next/font/google'
@@ -54,8 +54,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en-US">
       <body className={`${roboto.className} ${zenKakuGothicNew.variable} antialiased flex items-center justify-center flex-col`}>
-        <div className="flex items-center justify-between flex-col w-full lg:max-w-3xl h-full pb-5 pt-3 px-2">
+        <div className="flex items-center justify-between flex-col w-full lg:max-w-[50rem] h-full pb-5 pt-3 px-2 gap-3">
           <header className="flex items-center gap-2 w-full">
+            <Link href="https://github.com/XielQs/base34" target="_blank" className="w-8 h-8 inline-flex items-center justify-center hover:bg-primary-light hover:text-white rounded-full transition-colors duration-500">
+              <VscGithub size={20} />
+            </Link>
             <div className="grow"></div>
             <Link href="/" className="w-8 h-8 inline-flex items-center justify-center hover:bg-primary-light hover:text-white rounded-full transition-colors duration-500">
               <VscSearch size={16} />

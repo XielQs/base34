@@ -1,3 +1,5 @@
+import usePreferencesStore from '@/app/stores/preferencesStore'
+
 export const extractCount = (label: string) => +(label.match(/\((\d+)\)$/)?.[1] ?? 0)
 
 const htmlEntities = {
@@ -28,6 +30,11 @@ export const sortTags = (tags: IRawTag[]) => tags.sort((a, b) => {
   return a.tag.localeCompare(b.tag)
 })
 
+const getAgoString = (amount: number, singular: string) => {
+	const fixedAmount = amount.toFixed()
+	return `${fixedAmount} ${singular}${fixedAmount === '1' ? '' : 's'} ago`
+}
+
 // https://github.com/kurozenzen/kurosearch/tree/main/src/lib/logic/format-relative-time.ts
 export const formatCreatedAt = (createdAt: number) => {
 	const then = new Date(createdAt).getTime() / 60_000
@@ -49,11 +56,6 @@ export const formatCreatedAt = (createdAt: number) => {
 	return getAgoString(yearsAgo, 'year')
 }
 
-const getAgoString = (amount: number, singular: string) => {
-	const fixedAmount = amount.toFixed()
-	return `${fixedAmount} ${singular}${fixedAmount === '1' ? '' : 's'} ago`
-}
-
 export const formatVideoTime = (seconds: number) => {
 	const floored = Math.floor(seconds)
 	const s = floored % 60
@@ -62,3 +64,16 @@ export const formatVideoTime = (seconds: number) => {
 
 	return `${h > 0 ? `${h.toString().padStart(2, '0')}:` : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
+
+export const useProxy = (url: string) => {
+  const shouldProxy = usePreferencesStore(state => state.useProxy)
+  if (shouldProxy) {
+    return `/api/proxy?query=${encodeURIComponent(url)}`
+  }
+  return url
+}
+
+export const parseTags = (tags: ITagWithModifier[], blockedContent: string[]) => [
+  ...tags.map(tag => tag.modifier + tag.label),
+  ...blockedContent.map(tag => tag.split(' ').map(t => '-' + t).join(' ')),
+]

@@ -11,7 +11,7 @@ Heavily inspired by [kurosearch](https://kurosearch.com)
 ## To Do
 
 - [x] Add a search function
-- [ ] Add preferences page
+- [x] Add preferences page
 - [ ] Add a security mode
 
 ## License

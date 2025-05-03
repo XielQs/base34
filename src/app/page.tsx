@@ -1,14 +1,16 @@
 'use client'
 import { VscDebugDisconnect, VscError, VscPerson } from 'react-icons/vsc'
+import { formatCreatedAt, parseTags, useProxy } from '@/utils/helpers'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BiHeart, BiLink, BiLinkExternal } from 'react-icons/bi'
 import { LuFolders, LuInfo, LuPencil } from 'react-icons/lu'
+import usePreferencesStore from './stores/preferencesStore'
 import { IoPricetagOutline } from 'react-icons/io5'
-import { formatCreatedAt } from '@/utils/helpers'
+import useResultsStore from './stores/resultsStore'
 import { FiMinus } from 'react-icons/fi'
 import { GoPlus } from 'react-icons/go'
-import fluidPlayer from 'fluid-player'
 import Image from '@/components/Image'
+import Video from '@/components/Video'
 import Link from 'next/link'
 import axios from 'axios'
 import '../../node_modules/fluid-player/src/css/fluidplayer.css'
@@ -16,19 +18,23 @@ import '../../node_modules/fluid-player/src/css/fluidplayer.css'
 const formatter = Intl.NumberFormat('en', { notation: 'compact' })
 
 export default function Home() {
+  const resultsStore = useResultsStore(state => state)
+  const { blockedContent, hasHydrated, sawWarning, setSawWarning } = usePreferencesStore(state => state)
+
   const [modifier, setModifier] = useState<TModifier>('+')
-  const [tag, setTag] = useState<string>('')
+  const [search, setSearch] = useState<string>('')
   const [isSelectorOpen, setIsSelectorOpen] = useState<boolean>(false)
   const [focusInside, setFocusInside] = useState<boolean>(false)
-  const [tags, setTags] = useState<ITagWithModifier[]>([])
+  const [tags, setTags] = useState<ITagWithModifier[]>(resultsStore.tags)
   const [suggestions, setSuggestions] = useState<ITag[] | null>([])
   const [abortController, setAbortController] = useState<AbortController | null>(null)
   const [sendTimeout, setSendTimeout] = useState<number | null>(null)
   const [selectedSuggestion, setSelectedSuggestion] = useState<number>(0)
-  const [posts, setPosts] = useState<IPost[] | false | null>(null)
-  const [totalPosts, setTotalPosts] = useState<number>(0)
+  const [posts, setPosts] = useState<IPost[] | false | null>(resultsStore.posts)
+  const [totalPosts, setTotalPosts] = useState<number>(resultsStore.totalPosts)
   const [error, setError] = useState<Error | null>(null)
   const [pid, setPid] = useState(0)
+  const [isEnd, setIsEnd] = useState(false)
   const [isLoadingMore, setLoadingMore] = useState(false)
 
   const tagSelectorRef = useRef<HTMLOListElement>(null)
@@ -36,7 +42,7 @@ export default function Home() {
   const loadMoreBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (tag.trim().length === 0) return
+    if (search.trim().length === 0) return
     setSuggestions(null)
     setSelectedSuggestion(0)
     const fetchTags = async () => {
@@ -46,7 +52,7 @@ export default function Home() {
       const controller = new AbortController()
       setAbortController(controller)
       try {
-        const { data } = await axios.post<ITag[] | { error: string }>('/api/autocomplete', { query: tag.trim() }, { signal: controller.signal })
+        const { data } = await axios.post<ITag[] | { error: string }>('/api/autocomplete', { query: search.trim() }, { signal: controller.signal })
         if ('error' in data) return alert(data.error)
         setSuggestions(data)
       } catch (e) {
@@ -71,11 +77,11 @@ export default function Home() {
         abortController.abort()
       }
     }
-  }, [tag]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    setIsSelectorOpen(tag.length > 0 && focusInside)
-  }, [tag, focusInside])
+    setIsSelectorOpen(search.length > 0 && focusInside)
+  }, [search, focusInside])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,13 +99,17 @@ export default function Home() {
   }, [])
 
   const loadMore = useCallback(async () => {
-    if (posts === null || posts === false || isLoadingMore) return
+    if (posts === null || posts === false || isLoadingMore || isEnd) return
     try {
       setPid(pid => pid + 1)
       setLoadingMore(true)
-      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label), pid: pid + 1 })
+      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: parseTags(tags, blockedContent), pid: pid + 1 })
       const postsIDs = posts.map(post => post.id)
       const newPosts = data.data.filter(post => !postsIDs.includes(post.id))
+      if (newPosts.length === 0) {
+        setIsEnd(true)
+        return
+      }
       setPosts(posts => [...(posts as IPost[]), ...newPosts])
       setTotalPosts(data.total)
     } catch (e) {
@@ -109,16 +119,16 @@ export default function Home() {
       setError(e as Error)
     }
     setLoadingMore(false)
-    }, [posts, tags, pid, isLoadingMore])
+  }, [posts, tags, pid, isLoadingMore, isEnd, blockedContent])
 
   useEffect(() => {
     const loadMoreBtn = loadMoreBtnRef.current
     if (!loadMoreBtn) return
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
         loadMore()
       }
-    }, { threshold: 1 })
+    }, { threshold: 1, rootMargin: '5000px' })
     observer.observe(loadMoreBtn)
     return () => {
       if (loadMoreBtn) {
@@ -126,6 +136,14 @@ export default function Home() {
       }
     }
   }, [loadMoreBtnRef, loadMore])
+
+  useEffect(() => {
+    if (hasHydrated) {
+      resultsStore.setTags(tags)
+      resultsStore.setPosts(posts || null)
+      resultsStore.setTotalPosts(totalPosts)
+    }
+  }, [hasHydrated, tags, posts, totalPosts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFocus = () => {
     setFocusInside(true)
@@ -136,8 +154,10 @@ export default function Home() {
     setTotalPosts(0)
     setError(null)
     setPid(0)
+    setIsEnd(false)
+    setLoadingMore(false)
     try {
-      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: tags.map(tag => tag.modifier + tag.label) })
+      const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: parseTags(tags, blockedContent) })
       setPosts(data.data)
       setTotalPosts(data.total)
     } catch (e) {
@@ -146,19 +166,20 @@ export default function Home() {
       setTotalPosts(0)
       setError(e as Error)
     }
-  }, [tags])
+  }, [tags, blockedContent])
 
   useEffect(() => {
-    handleSearch()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!hasHydrated) return
+    if (!posts || posts.length < 1) handleSearch()
+  }, [hasHydrated]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' && tag.length > 0) {
+    if (event.key === 'Enter' && search.length > 0) {
       const selectedTag = suggestions?.[selectedSuggestion]
       if (selectedTag) {
         addTag(selectedTag, true)
       } else {
-        addTag({ label: tag, count: 0, type: 'general', source: 'rule34' }, true)
+        addTag({ label: search, count: 0, type: 'general', source: 'rule34' }, true)
       }
     } else if (event.key === 'Enter' && event.ctrlKey && tags.length > 0) {
       handleSearch()
@@ -178,7 +199,7 @@ export default function Home() {
   }
 
   const addTag = (tag: ITag, clear = false, forceAdd = false) => {
-    if (clear) setTag('')
+    if (clear) setSearch('')
     if (tags.some(t => t.label === tag.label)) {
       console.log('Tag already exists:', tag)
       return
@@ -199,6 +220,14 @@ export default function Home() {
     } else {
       addTag(tag, false, true)
     }
+  }
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-16 h-16 border-4 border-t-transparent border-secondary rounded-full animate-spin"></div>
+      </div>
+    )
   }
 
   return (
@@ -225,8 +254,8 @@ export default function Home() {
           <input
             type="text"
             ref={tagInputRef}
-            value={tag}
-            onChange={e => setTag(e.target.value)}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             className="w-full h-full font-light text-sm bg-transparent placeholder:text-[#7a7a7a] leading-0.5 rounded-md"
@@ -318,13 +347,56 @@ export default function Home() {
             </ol>
           )}
           <div></div>
-          <button type="button" ref={loadMoreBtnRef} onClick={loadMore} className="w-40 h-9 font-light font-[Arial] text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer flex items-center justify-center disabled:bg-secondary/75 disabled:cursor-auto" disabled={posts === null || isLoadingMore}>
-            Load more
-            {isLoadingMore && (
-              <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin ml-2"></div>
-            )}
-          </button>
+          {!isEnd ? (
+            <button type="button" ref={loadMoreBtnRef} onClick={loadMore} className="w-40 h-9 font-light font-[Arial] text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer flex items-center justify-center disabled:bg-secondary/75 disabled:cursor-auto" disabled={posts === null || isLoadingMore}>
+              Load more
+              {isLoadingMore && (
+                <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin ml-2"></div>
+              )}
+            </button>
+          ) : (
+            <div className="flex flex-col items-center m-auto my-12 rounded bg-primary-light p-4 w-full max-w-[400px]">
+              <div className="flex items-center m-auto gap-6">
+                <div className="grid place-items-center min-w-16 min-h-16 rounded border-2 border-primary-tone shrink">
+                  <VscDebugDisconnect size={32} className="text-secondary" />
+                </div>
+                <div>
+                  <h3 className="pb-1">No more results</h3>
+                  <span className="text-sm">
+                    No more posts found for the given tags.
+                    Please try different tags or combinations.
+                  </span>
+                </div>
+              </div>
+              <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="mt-2 w-full h-9 font-light font-[Arial] text-sm hover:bg-primary-tone transition-colors duration-300 uppercase rounded-md cursor-pointer flex items-center justify-center">
+                Back To Top
+              </button>
+            </div>
+          )}
         </section>
+      )}
+      {!sawWarning && (
+        // make a modal
+        <div className="fixed top-0 left-0 w-full h-full backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-primary shadow-[0_0_100px_100px_#000] border-2 border-secondary border-solid p-4 gap-4 rounded-lg max-w-[500px] text-center">
+            <Image src="/astolfo.png" alt="Warning Icon" width={200} height={200} className="h-[200px] mx-auto mb-4" />
+            <h1 className="text-7xl text-center font-gothic text-secondary">base34</h1>
+            <h2 className="text-xl my-4">Terms of Use</h2>
+            <hr className="border-t-2 border-primary-light my-4" />
+            <h3 className="text-lg font-semibold mb-2">Mature Content</h3>
+            <p className="text-sm mb-4">
+              This site contains explicit content that is not suitable for all audiences. By using this site, you acknowledge that you are at least 18 years old and agree to view such content.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button type="button" onClick={() => setSawWarning(true)} className="w-32 h-9 font-light text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer">
+                Accept
+              </button>
+              <button type="button" onClick={() => window.location.href = 'https://www.google.com'} className="w-32 h-9 font-light text-sm bg-primary-tone hover:bg-primary-tone/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer">
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
@@ -365,8 +437,6 @@ const REFERENCE_MAPPINGS = {
 
 function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: ITag) => void, tags: ITag[] }) {
   const [tab, setTab] = useState<'reference' | 'tags' | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  let player: FluidPlayerInstance | null = null
 
   const parseTagTypeColor = (tag: TType) => {
     switch (tag) {
@@ -408,38 +478,15 @@ function Post({ post, onTagClicked, tags }: { post: IPost, onTagClicked: (tag: I
     }
   }
 
-  useEffect(() => {
-    if (!videoRef.current || player) return
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    player = fluidPlayer(videoRef.current, {
-      layoutControls: {
-        controlBar: {
-          autoHideTimeout: 3,
-          animated: true,
-          autoHide: true
-        },
-        autoPlay: false,
-        mute: false,
-        allowTheatre: false,
-        playPauseAnimation: false,
-        playbackRateEnabled: true,
-        allowDownload: true,
-        playButtonShowing: true,
-        fillToContainer: false,
-        primaryColor: 'var(--color-secondary)',
-      },
-    })
-  }, [videoRef])
+  const fileURL = useProxy(post.file_url)
+  const previewURL = useProxy(post.preview_url)
 
   return (
     <li className="flex flex-col">
       {post.type === 'video' ? (
-        // <Video src={post.file_url} width={post.width} height={post.height} poster={post.preview_url} loop={false} />
-        <video ref={videoRef} width={post.width} height={post.height} poster={`/api/proxy?query=${encodeURIComponent(post.preview_url)}`} loop={post.tag_info.some(tag => tag.tag === 'loop')}>
-          <source src={`/api/proxy?query=${encodeURIComponent(post.file_url)}`} data-fluid-hd type="video/mp4" />
-        </video>
+        <Video src={fileURL} width={post.width} height={post.height} poster={previewURL} loop={post.tag_info.some(tag => tag.tag === 'loop')} />
       ) : (
-        <Image src={`/api/proxy?query=${encodeURIComponent(post.file_url)}`} previewURL={`/api/proxy?query=${encodeURIComponent(post.preview_url)}`} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={true} />
+        <Image src={fileURL} previewURL={previewURL} alt={post.tags} width={post.width} height={post.height} className="rounded-t-xl w-full h-auto" unoptimized={true} />
       )}
       <div className="rounded-b-xl text-sm bg-primary-light p-2 flex flex-col gap-2">
         <div className="flex items-center gap-2">
