@@ -106,7 +106,7 @@ export default function Home() {
       const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: parseTags(tags, blockedContent), pid: pid + 1 })
       const postsIDs = posts.map(post => post.id)
       const newPosts = data.data.filter(post => !postsIDs.includes(post.id))
-      if (newPosts.length === 0 && posts.length !== 0) {
+      if (newPosts.length === 0) {
         setIsEnd(true)
         return
       }
@@ -347,7 +347,7 @@ export default function Home() {
             </ol>
           )}
           <div></div>
-          {!isEnd ? (
+          {posts.length === 0 ? null : !isEnd ? (
             <button type="button" ref={loadMoreBtnRef} onClick={loadMore} className="w-40 h-9 font-light font-[Arial] text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer flex items-center justify-center disabled:bg-secondary/75 disabled:cursor-auto" disabled={posts === null || isLoadingMore}>
               Load more
               {isLoadingMore && (
