@@ -106,7 +106,7 @@ export default function Home() {
       const { data } = await axios.post<{ data: IPost[], total: number }>('/api/search', { query: parseTags(tags, blockedContent), pid: pid + 1 })
       const postsIDs = posts.map(post => post.id)
       const newPosts = data.data.filter(post => !postsIDs.includes(post.id))
-      if (newPosts.length === 0) {
+      if (newPosts.length === 0 && posts.length !== 0) {
         setIsEnd(true)
         return
       }
