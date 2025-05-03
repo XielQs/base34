@@ -1,7 +1,10 @@
 import { VscGithub, VscSearch, VscSettingsGear } from 'react-icons/vsc'
+import type { PreferencesState } from './stores/preferencesStore'
 import { Zen_Kaku_Gothic_New } from 'next/font/google'
 import BackToTop from '@/components/BackToTop'
+import Provider from '@/components/Provider'
 import { Roboto } from 'next/font/google'
+import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import './globals.css'
@@ -19,35 +22,53 @@ const zenKakuGothicNew = Zen_Kaku_Gothic_New({
   variable: '--font-gothic',
 })
 
-export const metadata: Metadata = {
-  title: "Base34",
-  description: "Base34 cuz rule34 is basesd",
-  icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-  },
-  metadataBase: new URL('https://base34.vercel.app'),
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies()
+  const preferences: { state?: PreferencesState } = JSON.parse(cookieStore.get('preferences-storage')?.value || '{}')
+  const privacyMode = preferences.state?.privacyMode || false
+
+  if (privacyMode) {
+    return {
+      title: "Google",
+      description: "Google Search",
+      icons: {
+        icon: 'https://google.com/favicon.ico',
+        shortcut: 'https://google.com/favicon.ico',
+      },
+      metadataBase: new URL('https://base34.vercel.app'),
+    }
+  }
+
+  return {
     title: "Base34",
     description: "Base34 cuz rule34 is basesd",
-    url: 'https://base34.vercel.app',
-    siteName: 'Base34',
-    images: [
-      {
-        url: '/favicon.png',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary',
-    title: "Base34",
-    description: "Base34 cuz rule34 is basesd",
-    images: [
-      {
-        url: '/favicon.png',
-      },
-    ],
-  },
+    icons: {
+      icon: '/favicon.png',
+      shortcut: '/favicon.png',
+    },
+    metadataBase: new URL('https://base34.vercel.app'),
+    openGraph: {
+      title: "Base34",
+      description: "Base34 cuz rule34 is basesd",
+      url: 'https://base34.vercel.app',
+      siteName: 'Base34',
+      images: [
+        {
+          url: '/favicon.png',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary',
+      title: "Base34",
+      description: "Base34 cuz rule34 is basesd",
+      images: [
+        {
+          url: '/favicon.png',
+        },
+      ],
+    },
+  }
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -67,8 +88,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <VscSettingsGear size={16} />
             </Link>
           </header>
-          <main className="flex flex-col gap-3.5 w-full h-full relative">
-            {children}
+          <main className="flex flex-col gap-3.5 w-full h-full relative p-2">
+            <Provider>
+              {children}
+            </Provider>
             <BackToTop />
           </main>
           <footer className="text-center text-xs mt-4">

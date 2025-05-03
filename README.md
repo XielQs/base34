@@ -12,7 +12,10 @@ Heavily inspired by [kurosearch](https://kurosearch.com)
 
 - [x] Add a search function
 - [x] Add preferences page
-- [ ] Add a security mode
+- [x] Add a privacy mode
+- [ ] Add a bookmark function
+- [ ] Add multiple rule34 providers
+- [ ] Add post page
 
 ## License
 

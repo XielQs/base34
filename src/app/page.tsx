@@ -19,7 +19,7 @@ const formatter = Intl.NumberFormat('en', { notation: 'compact' })
 
 export default function Home() {
   const resultsStore = useResultsStore(state => state)
-  const { blockedContent, hasHydrated, sawWarning, setSawWarning } = usePreferencesStore(state => state)
+  const { blockedContent } = usePreferencesStore(state => state)
 
   const [modifier, setModifier] = useState<TModifier>('+')
   const [search, setSearch] = useState<string>('')
@@ -138,12 +138,10 @@ export default function Home() {
   }, [loadMoreBtnRef, loadMore])
 
   useEffect(() => {
-    if (hasHydrated) {
-      resultsStore.setTags(tags)
-      resultsStore.setPosts(posts || null)
-      resultsStore.setTotalPosts(totalPosts)
-    }
-  }, [hasHydrated, tags, posts, totalPosts]) // eslint-disable-line react-hooks/exhaustive-deps
+    resultsStore.setTags(tags)
+    resultsStore.setPosts(posts || null)
+    resultsStore.setTotalPosts(totalPosts)
+  }, [tags, posts, totalPosts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFocus = () => {
     setFocusInside(true)
@@ -169,9 +167,8 @@ export default function Home() {
   }, [tags, blockedContent])
 
   useEffect(() => {
-    if (!hasHydrated) return
     if (!posts || posts.length < 1) handleSearch()
-  }, [hasHydrated]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && search.length > 0) {
@@ -222,14 +219,6 @@ export default function Home() {
     }
   }
 
-  if (!hasHydrated) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-16 h-16 border-4 border-t-transparent border-secondary rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
   return (
     <>
       <div className="flex items-center justify-center h-[250px]">
@@ -239,7 +228,7 @@ export default function Home() {
         <h1 className="text-7xl text-center font-gothic text-secondary">
           base34
         </h1>
-        <div className={`flex items-center justify-center max-w-[512px] relative w-full h-11 px-1.5 gap-2 bg-primary-light mx-auto rounded-3xl ${isSelectorOpen ? 'rounded-b-none drop-shadow-[0px_3px_5px_#000]' : ''}`}>
+        <div className={`flex items-center justify-center max-w-[512px] relative w-full h-11 px-1.5 gap-2 bg-primary-light mx-auto rounded-3xl z-10 ${isSelectorOpen ? 'rounded-b-none drop-shadow-[0px_3px_5px_#000]' : ''}`}>
           <button type="button" title="Change mode" className="min-w-8 min-h-8 inline-flex items-center justify-center text-2xl rounded-full hover:text-white hover:bg-primary-tone transition-colors duration-300 cursor-pointer" onClick={() => setModifier(modifier === '+' ? '-' : modifier === '-' ? '~' : '+')}>
             {
               modifier === '+' ? (
@@ -374,29 +363,6 @@ export default function Home() {
             </div>
           )}
         </section>
-      )}
-      {!sawWarning && (
-        // make a modal
-        <div className="fixed top-0 left-0 w-full h-full backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-primary shadow-[0_0_100px_100px_#000] border-2 border-secondary border-solid p-4 gap-4 rounded-lg max-w-[500px] text-center">
-            <Image src="/astolfo.png" alt="Warning Icon" width={200} height={200} className="h-[200px] mx-auto mb-4" />
-            <h1 className="text-7xl text-center font-gothic text-secondary">base34</h1>
-            <h2 className="text-xl my-4">Terms of Use</h2>
-            <hr className="border-t-2 border-primary-light my-4" />
-            <h3 className="text-lg font-semibold mb-2">Mature Content</h3>
-            <p className="text-sm mb-4">
-              This site contains explicit content that is not suitable for all audiences. By using this site, you acknowledge that you are at least 18 years old and agree to view such content.
-            </p>
-            <div className="flex justify-center gap-4">
-              <button type="button" onClick={() => setSawWarning(true)} className="w-32 h-9 font-light text-sm bg-secondary hover:bg-secondary/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer">
-                Accept
-              </button>
-              <button type="button" onClick={() => window.location.href = 'https://www.google.com'} className="w-32 h-9 font-light text-sm bg-primary-tone hover:bg-primary-tone/75 transition-colors duration-300 uppercase text-white rounded-md cursor-pointer">
-                Leave
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </>
   )

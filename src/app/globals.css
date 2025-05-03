@@ -55,5 +55,5 @@ html {
 }
 
 .fluid_video_wrapper {
-  @apply !-z-10 !w-auto !h-auto !rounded-t-xl;
+  @apply !w-auto !h-auto !rounded-t-xl;
 }
