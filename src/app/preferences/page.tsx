@@ -19,6 +19,7 @@ const BLOCKED_CONTENT = {
     'zoophilia*',
     'animal'
   ].join(' '),
+  Pokemon: 'pokemon'
 }
 
 export default function Preferences() {
