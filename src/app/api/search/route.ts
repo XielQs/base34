@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const optionalTags = tags.filter(tag => tag.startsWith('~'))
     const searchTags = tags.filter(tag => !tag.startsWith('~')).map(tag => tag.startsWith('+') ? tag.slice(1) : tag)
 
-    searchTags.unshift(`( ${optionalTags.map(t => t.slice(1)).join(' ~ ')} )`)
+    if (optionalTags.length) searchTags.unshift(`( ${optionalTags.map(t => t.slice(1)).join(' ~ ')} )`)
 
     const parsedTags = `sort:id:desc ${searchTags.join(' ')}`.trim()
 

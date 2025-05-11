@@ -40,18 +40,18 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: "Base34",
-    description: "Base34 cuz rule34 is basesd",
+    title: "base34",
+    description: "base34 cuz rule34 is based",
     icons: {
       icon: '/favicon.png',
       shortcut: '/favicon.png',
     },
     metadataBase: new URL('https://base34.vercel.app'),
     openGraph: {
-      title: "Base34",
-      description: "Base34 cuz rule34 is basesd",
+      title: "base34",
+      description: "base34 cuz rule34 is basesd",
       url: 'https://base34.vercel.app',
-      siteName: 'Base34',
+      siteName: 'base34',
       images: [
         {
           url: '/favicon.png',
@@ -60,8 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary',
-      title: "Base34",
-      description: "Base34 cuz rule34 is basesd",
+      title: "base34",
+      description: "base34 cuz rule34 is basesd",
       images: [
         {
           url: '/favicon.png',
@@ -95,7 +95,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <BackToTop />
           </main>
           <footer className="text-center text-xs mt-4">
-            <p>&copy; {new Date().getFullYear()} Base34 - because rule34 is based</p>
+            <p>&copy; {new Date().getFullYear()} base34 - because rule34 is based</p>
             <p>Design inspired by <a href="https://kurosearch.com" target="_blank" rel="noopener noreferrer" className="underline">Kurosearch</a></p>
           </footer>
         </div>
