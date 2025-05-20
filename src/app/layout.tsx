@@ -40,16 +40,16 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: "base34",
-    description: "base34 cuz rule34 is based",
+    title: 'base34',
+    description: 'base34 cuz rule34 is based',
     icons: {
       icon: '/favicon.png',
       shortcut: '/favicon.png',
     },
     metadataBase: new URL('https://base34.vercel.app'),
     openGraph: {
-      title: "base34",
-      description: "base34 cuz rule34 is basesd",
+      title: 'base34',
+      description: 'base34 cuz rule34 is based',
       url: 'https://base34.vercel.app',
       siteName: 'base34',
       images: [
@@ -60,8 +60,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary',
-      title: "base34",
-      description: "base34 cuz rule34 is basesd",
+      title: 'base34',
+      description: 'base34 cuz rule34 is based',
       images: [
         {
           url: '/favicon.png',
