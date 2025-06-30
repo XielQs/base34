@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
     const response = await axios.get<Array<{ label: string, value: string, type: TType }>>('https://ac.rule34.xxx/autocomplete.php', {
       params: {
         q: query,
+      },
+      headers: {
+        Referer: 'https://rule34.xxx/'
       }
     })
 
